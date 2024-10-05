@@ -1,0 +1,71 @@
+[
+    [
+        {
+            "Name": "Overall face(Reference)",
+            "Distance": 100.85714285714286,
+            "Symmetry": null,
+            "Percentage": null
+        },
+        {
+            "Name": "Hairline to centre of eyebrows",
+            "Distance": 32.57142857142857,
+            "Symmetry": "smaller",
+            "Percentage": 96.88385269121812
+        },
+        {
+            "Name": "Centre of eyebrows to bottom of nose",
+            "Distance": 36.0,
+            "Symmetry": "larger",
+            "Percentage": 93.3862433862434
+        },
+        {
+            "Name": "Bottom of nose to bottom of chin",
+            "Distance": 32.285714285714285,
+            "Symmetry": "smaller",
+            "Percentage": 96.03399433427762
+        },
+        {
+            "Name": "Upper cheeks(Reference)",
+            "Distance": 73.14285714285714,
+            "Symmetry": null,
+            "Percentage": null
+        },
+        {
+            "Name": "Right side to edge of inner eye",
+            "Distance": 14.0,
+            "Symmetry": "smaller",
+            "Percentage": 95.703125
+        },
+        {
+            "Name": "Left side to edge of inner eye",
+            "Distance": 13.142857142857142,
+            "Symmetry": "smaller",
+            "Percentage": 89.84375
+        },
+        {
+            "Name": "Right inner eye",
+            "Distance": 13.428571428571429,
+            "Symmetry": "smaller",
+            "Percentage": 91.796875
+        },
+        {
+            "Name": "Left inner eye",
+            "Distance": 17.428571428571427,
+            "Symmetry": "larger",
+            "Percentage": 83.93442622950819
+        },
+        {
+            "Name": "Between eyes",
+            "Distance": 16.857142857142858,
+            "Symmetry": "larger",
+            "Percentage": 86.77966101694915
+        }
+    ],
+    [
+        {
+            "output_image": "image_proportion_sym/1.jpg",
+            "output_image1": "image_unified_sym/1.jpg",
+            "output_image2": "image_unified_line_sym/1.jpg"
+        }
+    ]
+]
