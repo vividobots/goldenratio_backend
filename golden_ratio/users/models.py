@@ -19,7 +19,7 @@ class User(AbstractUser):
         verbose_name=('user permissions'),
         blank=True,
         related_name='customuser_set', 
-        related_query_name='customuser',
+        related_query_name='customuser',  
     )
 
     USERNAME_FIELD = "username"
@@ -35,8 +35,12 @@ class UploadedImage(models.Model):
     sym_unified_image=models.CharField(blank=True, max_length=100)
     sym_unified_line_image=models.CharField(blank=True, max_length=100)
     reference_json=models.CharField(blank=True, max_length=100)
+    reference_pdf=models.CharField(blank=True, max_length=100)
     processed_json=models.CharField(blank=True, max_length=100)
+    processed_pdf=models.CharField(blank=True, max_length=100)
     phi_matrix_json=models.CharField(blank=True, max_length=100)
+    phi_pdf=models.CharField(blank=True, max_length=100)
     symmetric_json=models.CharField(blank=True, max_length=100)
+    symmetric_pdf=models.CharField(blank=True, max_length=100)
     status=models.BooleanField(default=False)
     lastUpdate = models.DateTimeField(auto_now=True, blank=True)

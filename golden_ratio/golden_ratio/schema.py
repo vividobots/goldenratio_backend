@@ -1,7 +1,7 @@
 import graphene
 from graphql_auth.schema import UserQuery, MeQuery
 from graphql_auth import mutations
-from users.schema import UsersQuery,UsersMutation
+from users.schema import UsersQuery,UsersMutation, FileUploadQuery
 
                               
 # from users.schema import UserstMutations
@@ -15,7 +15,7 @@ class AuthMutation(graphene.ObjectType):
    send_password_reset_email = mutations.SendPasswordResetEmail.Field()
    password_reset = mutations.PasswordReset.Field()
 
-class Query(UserQuery,
+class Query(UserQuery,FileUploadQuery,
             MeQuery,UsersQuery,
             graphene.ObjectType):
     pass

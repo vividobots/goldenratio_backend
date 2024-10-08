@@ -6,3 +6,4 @@ class fileUploadSerializers(serializers.ModelSerializer):
         model = UploadedImage
         fields = ['id','file_upload','user']
 
+    

@@ -21,11 +21,17 @@ from .m2rlandmarks import l2 as filter_landmark4
 
 from .refer import l2, rft_arr, rft1_arr
 
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Image, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+
 
 import re
 # from .refer import filter_landmark3 ,filter_landmark4,rft_arr,rft1_arr
 # from PIL import Image
-
 import cv2
 folder_path = 'golden_ratio_output/'
 folder_path1= 'input_as_reference_output/'
@@ -147,31 +153,31 @@ def idraw_lines_with_text1(image, landmarks, landmark_pairs):
     return image, sum2, green, distances  # Return the list of distances
 #-----------------------------input as referebce----------------
 a=[]
-input_as_reference_Name=['Distance between the eyes',
-'Width of right eye ',
-'Width of left eye ',
-'End of the arc to length of the right eyebrow',
-'End of the arc to length of the left eyebrow',
-'Right mouth edge to side of the face ',
-'Left mouth edge to side of the face',
-'Center of mouth to chin',
-'Width of upper lip',
-'Width of the nose',
-'Width of forehead',
-'Width of the chin']
+# input_as_reference_Name=['Distance between the eyes',
+# 'Width of right eye ',
+# 'Width of left eye ',
+# 'End of the arc to length of the right eyebrow',
+# 'End of the arc to length of the left eyebrow',
+# 'Right mouth edge to side of the face ',
+# 'Left mouth edge to side of the face',
+# 'Center of mouth to chin',
+# 'Width of upper lip',
+# 'Width of the nose',
+# 'Width of forehead',
+# 'Width of the chin']
 
-input_as_reference_Name2=['Distance from right eye inner edge to side of face',
-'Distance from left eye inner edge to side of face',
-'Width of the right eyebrow',
-'Width of the left eyebrow',
-'Length of the nose',
-'Width of the mouth',
-'Starting of the nose to center of the mouth',
-'Width of lower lip',
-'Right eye inner edge to cheekbone',
-'Left eye inner edge to cheekbone',
-'Centre of forehead to right side of face',
-'Centre of forehead to left side of face' ]
+# input_as_reference_Name2=['Distance from right eye inner edge to side of face',
+# 'Distance from left eye inner edge to side of face',
+# 'Width of the right eyebrow',
+# 'Width of the left eyebrow',
+# 'Length of the nose',
+# 'Width of the mouth',
+# 'Starting of the nose to center of the mouth',
+# 'Width of lower lip',
+# 'Right eye inner edge to cheekbone',
+# 'Left eye inner edge to cheekbone',
+# 'Centre of forehead to right side of face',
+# 'Centre of forehead to left side of face' ]
 
 # inpt_arr=[]
 # inpt1_arr=[]
@@ -280,7 +286,8 @@ class golden_ratio(View):
                 image1, gsum, greenlist, ft1_distances = idraw_lines_with_text1(image1, landmarks, l2)
                 asum = rsum + gsum
                 avg = asum / (len(l1) + len(l2))
-                print(f"\noverall percentage: {avg:.2f}%")
+                avg= f"{avg:.3f}"
+                print(f"\noverall percentage: {avg}%")
 
 
                 ft_combined = ft_distances + ft1_distances  # Combine the distances
@@ -293,7 +300,7 @@ class golden_ratio(View):
                         'reference_value': f"{reference_value:.3f}",
                         'gr_percentage': f"{g:.3f}"
                     })
-                ratios[1].append({"average":f"{avg}"})
+                ratios[1].append({"average":avg})
          
 
                
@@ -335,6 +342,7 @@ class golden_ratio(View):
         response.renderer_context = {}
 
         return HttpResponse("response")
+        
                 # s=json_data()
                 # print(type(s))
         
@@ -369,7 +377,132 @@ class GR_retrive(View):
             return JsonResponse({"error": "File not found"}, status=404)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+        
 
+class GR_pdf(View):
+    def get(self, request, ids, *args, **kwargs):
+
+        # Retrieve the file path from the database using the provided id
+        filepath = UploadedImage.objects.get(id=ids)
+        reference_json = filepath.reference_json
+        
+        # Construct the full file path
+        file_path = os.path.join(reference_json)
+
+
+        
+        # Open and load the JSON file
+        with open(file_path, 'r', encoding="utf-16") as jsonfile:
+            json_data = json.load(jsonfile)
+            
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        # Define styles
+        styles = getSampleStyleSheet()
+
+        elements.append(Paragraph("Golden Ratio Report", styles['Title']))
+        elements.append(Spacer(1, 8))
+
+        image_paths = []
+        avg_paths = []
+        # custom_style = styles.add(ParagraphStyle(name='CustomStyle', fontSize=12, textColor=colors.red))
+# Check if json_data is a list or tuple and has more than 2 items
+        if isinstance(json_data, (tuple, list)) and len(json_data) >= 3:
+            try:
+                    # Extract image paths from the nested dictionaries
+                    image_paths = [
+                        json_data[2][0].get('output_image')
+                    ]
+
+                    print("Image paths:", image_paths)  # Printing extracted image paths
+            except (KeyError, IndexError) as e:
+                    print("Error accessing image paths:", e)
+
+    # Process each image path 
+
+
+
+        for i,img_path in enumerate(image_paths):
+            if img_path:
+                elements.append(Image(img_path, width=440, height=563))
+
+                if i == 0: 
+                     elements.append(Spacer(1, 12)) 
+                     elements.append(Paragraph("Ploted Coodinates of Golden Ratio", styles['Title']))
+                     
+               
+
+        if isinstance(json_data, (tuple, list)) and len(json_data) >= 3:
+            try:
+                    # Extract image paths from the nested dictionaries
+                    avg_paths = [
+                        json_data[1][0].get('average')
+                        
+                    ]
+                    print("avg paths:", avg_paths)  # Printing extracted image paths
+            except (KeyError, IndexError) as e:
+                    print("Error accessing image paths:", e)
+                      
+            for i,avg_path in enumerate(avg_paths):
+             if avg_path:
+                  elements.append(Paragraph(f"Average Percentage: {avg_path}%", styles['Title']))
+                  elements.append(Spacer(1, 24))
+
+        # Handle table data safely
+        data_for_table = [['S.No.', 'Name', 'Input\n Distance', 'Reference\n Distance', 'Percentage']]
+        # if len(json_data) > 3 and isinstance(json_data[0], list):
+        for i, ratio in enumerate(json_data[0]):
+                if isinstance(ratio, dict):
+                     data_for_table.append([
+                        i + 1,
+                        ratio.get('Name', 'N/A'),
+                        ratio.get('patient_value', 'N/A'),
+                        ratio.get('reference_value', 'N/A'),
+                        f"{ratio.get('gr_percentage', 'N/A')}%"
+                    ])
+                   
+
+
+
+                    
+                    
+            # print("DGSGSSUK")
+        # Define column widths
+        col_widths = [doc.width / 14, doc.width / 1.3, doc.width / 5, doc.width / 9]
+        table = Table(data_for_table, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Align all text to the left
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.white])
+        ]))
+        elements.append(table)
+        d=doc.build(elements)
+        buffer.seek(0)
+        print(d)
+        filepath = UploadedImage.objects.get(id=ids)
+        gr_json = 'pdf_gr/'
+        pdf_path = os.path.join(gr_json, f'gr{ids}.pdf')
+        filepath.reference_pdf= pdf_path
+        filepath.save() 
+
+        with open(pdf_path, 'wb') as f:
+            f.write(buffer.getvalue())
+
+        # Return PDF as HTTP response
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="phi{ids}.pdf"'
+        return response
+    
+        # return HttpResponse(response)
         
 
 
@@ -490,7 +623,7 @@ class input_as_reference(View):
         print(inpt_arr)
         print(inpt1_arr)
         
-        for i, j,r1,r2 in zip(inpt_arr,inpt1_arr,input_as_reference_Name,input_as_reference_Name2):
+        for i, j,r1,r2 in zip(inpt_arr,inpt1_arr,Name,Name2):
             p=i*1.618
             q=p/j
          
@@ -516,12 +649,13 @@ class input_as_reference(View):
                 })
                 a.append(q*100)
             avg = sum(a)/ len(a)
-        ratios1[1].append({'average':f'{avg}'})
+            avg= f"{avg:.3f}"
+        ratios1[1].append({'average1':avg})
                 # print(f"{r1},{r2}\n{i,j},percentage= {q*100}\n")
                 
         #print(ratios1)
         avg = sum(a)/ len(a)
-        print(avg)
+        print(f"{avg:.3f}")
         
 
 
@@ -554,16 +688,16 @@ class input_as_reference(View):
         response.renderer_context = {}
 
         return HttpResponse("response")
-    
-class INPT_REF_retrive(View):
+     
+class INPTasREF_retrive(View):
     def get(self, request, ids, *args, **kwargs):
         try:
             # Retrieve the file path from the database using the provided id
             filepath = UploadedImage.objects.get(id=ids)
-            reference_json = filepath.processed_json
+            processed_json = filepath.processed_json
             
             # Construct the full file path
-            file_path = os.path.join(reference_json)
+            file_path = os.path.join(processed_json)
             
             # Open and load the JSON file
             with open(file_path, 'r', encoding="utf-16") as jsonfile:
@@ -585,6 +719,131 @@ class INPT_REF_retrive(View):
             return JsonResponse({"error": str(e)}, status=500)
 
         
+class INPTasREF_pdf(View):
+    def get(self, request, ids, *args, **kwargs):
+            
+        # Retrieve the file path from the database using the provided id
+        filepath = UploadedImage.objects.get(id=ids)
+        processed_json = filepath.processed_json
+        
+        # Construct the full file path
+        file_path = os.path.join(processed_json)
+        
+        # Open and load the JSON file
+        with open(file_path, 'r', encoding="utf-16") as jsonfile:
+            json_data = json.load(jsonfile)
+            print("J1",json_data)
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        # Define styles
+        styles = getSampleStyleSheet()
+
+        elements.append(Paragraph("Input as Reference Report", styles['Title']))
+        elements.append(Spacer(1, 8))
+
+        image_paths = []
+        avg_paths = []
+        # custom_style = styles.add(ParagraphStyle(name='CustomStyle', fontSize=12, textColor=colors.red))
+# Check if json_data is a list or tuple and has more than 2 items
+        if isinstance(json_data, (tuple, list)) and len(json_data) >= 3:
+            try:
+                    # Extract image paths from the nested dictionaries
+                    image_paths = [
+                        json_data[2][0].get('output_image')
+                    ]
+                    print("Image paths:", image_paths)  # Printing extracted image paths
+            except (KeyError, IndexError) as e:
+                    print("Error accessing image paths:", e)
+
+    # Process each image path
+        for i,img_path in enumerate(image_paths):
+            if img_path:
+                elements.append(Image(img_path, width=440, height=563))
+
+                if i == 0: 
+                     elements.append(Spacer(1, 12)) 
+                     elements.append(Paragraph("Ploted Coodinates of Input as Reference", styles['Title']))
+                     
+               
+
+        if isinstance(json_data, (tuple, list)) and len(json_data) >= 3:
+            try:
+                    # Extract image paths from the nested dictionaries
+                    avg_paths = [
+                        json_data[1][0].get('average1')
+                    ]
+                    print("Image paths:", avg_paths)  # Printing extracted image paths
+            except (KeyError, IndexError) as e:
+                    print("Error accessing image paths:", e)
+                      
+            for i,avg_path in enumerate(avg_paths):
+             if avg_path:
+                  elements.append(Paragraph(f"Average Percentage: {avg_path}%", styles['Title']))
+                  elements.append(Spacer(1, 24))
+
+        # Handle table data safely
+        data_for_table = [['S.No.', 'Name', 'Distance', 'Percentage']]
+        # if len(json_data) > 3 and isinstance(json_data[0], list):
+        for i, ratio in enumerate(json_data[0]):
+                if isinstance(ratio, dict):
+                    description1 = ratio.get('Name', 'N/A')
+                    description2 = ratio.get('Description2', 'N/A')
+                    distance1 = ratio.get('dist1', 'N/A')
+                    distance2 = ratio.get('dist2', 'N/A')
+                    percentage = ratio.get('Percentage', 'N/A')
+
+                    if description2 != 'N/A':
+                        description = f"{description1} - {description2}"
+                    else:
+                        description = description1
+
+                    data_for_table.append([
+                        i + 1,
+                        description,
+                        f"{distance1} - {distance2}",
+                        f"{percentage}%"
+                    ])
+                    
+                    
+            # print("DGSGSSUK")
+        # Define column widths
+        col_widths = [doc.width / 14, doc.width / 1.3, doc.width / 5, doc.width / 9]
+        table = Table(data_for_table, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Align all text to the left
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.white])
+        ]))
+        elements.append(table)
+        d=doc.build(elements)
+        buffer.seek(0)
+        print(d)
+
+        filepath = UploadedImage.objects.get(id=ids)
+        inpt_json = 'pdf_inpt_as_ref/'
+        pdf_path = os.path.join(inpt_json, f'inpt{ids}.pdf')
+        filepath.processed_pdf= pdf_path
+        filepath.save() 
+
+        with open(pdf_path, 'wb') as f:
+            f.write(buffer.getvalue())
+
+        # Return PDF as HTTP response
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="phi{ids}.pdf"'
+        return response
+    
+        # return HttpResponse(response)
 
 
 
@@ -1444,9 +1703,9 @@ class phi_matrix(View):
                 except (AttributeError, ValueError) as e:
                     # Handle cases where extraction or conversion fails
                     print(f"Parsing failed for detail: {detail}. Error: {e}")
-                avg = sum(global_perc) / len(global_perc)*100 if global_perc else 0
-                avg = avg*0.01
-            phi_ratios[1].append({'average':f'{avg}'}) 
+            #     avg = sum(global_perc) / len(global_perc)*100 if global_perc else 0
+            #     avg = avg*0.01
+            # phi_ratios[1].append({'average2':f'{avg}'}) 
 
         def fun(image,landlist):
             face_length(image, landlist)
@@ -1607,7 +1866,8 @@ class phi_matrix(View):
        
         avg = sum(global_perc) / len(global_perc)*100 if global_perc else 0
         avg = avg*0.01
-        # phi_ratios[1].append({'average':f'{avg}'})
+        avg=f"{avg:.3f}"
+        phi_ratios[1].append({'average2':f'{avg}'})
         print(avg)
         
         output_path = os.path.join(folder_path2,ids+'.jpg')
@@ -1615,7 +1875,7 @@ class phi_matrix(View):
         filepath = UploadedImage.objects.get(id=ids)
         filepath.phi_matrix_image= output_path
         phi_ratios[2].append({
-                        'image': output_path,
+                        'output_image': output_path,
                     })
         print(phi_ratios)
                        
@@ -1624,54 +1884,185 @@ class phi_matrix(View):
         filepath.phi_matrix_json= json_path2
         print(output_path)
         filepath.save()
-        #cv2.imshow("Filtered_Image", image)
-        def json_data():
-            with open (json_path2,'w') as f:
-                return f.write(res_json)
+        with open (json_path2,'w',encoding="utf-16") as f:
             
-        res_json=json.dumps(phi_ratios)
-        s=json_data()
-        print('type',type(s))
+                # return f.write(res_json) 
+            print("fcre",phi_ratios) 
+            json.dump(phi_ratios,f)
+        response = Response(phi_ratios, content_type='application/json')
+        response.accepted_renderer = JSONRenderer()
+        response.accepted_media_type = 'application/json'
+        response.renderer_context = {}
 
-      
-        # print(image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        return HttpResponse('image sucessfully stored for phi matrix')
-
-
+        return HttpResponse("response")
+     
 class PHI_retrive(View):
     def get(self, request, ids, *args, **kwargs):
-        print(ids)
-        input_path = r'GR_json/'
         try:
+            # Retrieve the file path from the database using the provided id
             filepath = UploadedImage.objects.get(id=ids)
-            json = filepath.phi_matrix_json
-            print("image->",json)
+            phi_matrix_json = filepath.phi_matrix_json
+            
+            # Construct the full file path
+            file_path = os.path.join(phi_matrix_json)
+            
+            # Open and load the JSON file
+            with open(file_path, 'r', encoding="utf-16") as jsonfile:
+                json_data = json.load(jsonfile)
+            
+            # Return the JSON data in the response
+            response = Response(json_data, content_type='application/json')
+            response.accepted_renderer = JSONRenderer()
+            response.accepted_media_type = 'application/json'
+            response.renderer_context = {}
+            
+            return response
+        
         except UploadedImage.DoesNotExist:
-            return HttpResponse('Image not found', status=404)
-   
-        image_path = os.path.join( json)
+            return JsonResponse({"error": "Image not found"}, status=404)
+        except FileNotFoundError:
+            return JsonResponse({"error": "File not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+        
+class PHI_pdf(View):
+    def get(self, request, ids, *args, **kwargs):
 
+        # Retrieve the file path from the database using the provided id
+        filepath = UploadedImage.objects.get(id=ids)
+        phi_matrix_json = filepath.phi_matrix_json
+        
+        # Construct the full file path
+        file_path = os.path.join(phi_matrix_json)
+        
+        # Open and load the JSON file
+        with open(file_path, 'r', encoding="utf-16") as jsonfile:
+            json_data = json.load(jsonfile)
+            print("J1",json_data)
 
-        #re_json = filepath.reference_json
-        json_path = os.path.join(image_path)
-        print("JSON->",json_path)
-        filepath.phi_matrix_json= json_path
-        # print(output_path)
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        # Define styles
+        styles = getSampleStyleSheet()
+
+        elements.append(Paragraph("Phi Matrix Report", styles['Title']))
+        elements.append(Spacer(1, 8))
+
+        image_paths = []
+        avg_paths = []
+        # custom_style = styles.add(ParagraphStyle(name='CustomStyle', fontSize=12, textColor=colors.red))
+# Check if json_data is a list or tuple and has more than 2 items
+        if isinstance(json_data, (tuple, list)) and len(json_data) >= 3:
+            try:
+                    # Extract image paths from the nested dictionaries
+                    image_paths = [
+                        json_data[2][0].get('output_image')
+                    ]
+                    print("Image paths:", image_paths)  # Printing extracted image paths
+            except (KeyError, IndexError) as e:
+                    print("Error accessing image paths:", e)
+
+    # Process each image path
+        for i,img_path in enumerate(image_paths):
+            if img_path:
+                elements.append(Image(img_path, width=440, height=563))
+
+                if i == 0: 
+                     elements.append(Spacer(1, 12)) 
+                     elements.append(Paragraph("Ploted Coodinates of Phi Matrix", styles['Title']))
+                     
+               
+
+        if isinstance(json_data, (tuple, list)) and len(json_data) >= 3:
+            try:
+                    # Extract image paths from the nested dictionaries
+                    avg_paths = [
+                        json_data[1][0].get('average2')
+                    ]
+                    print("Image paths:", avg_paths)  # Printing extracted image paths
+            except (KeyError, IndexError) as e:
+                    print("Error accessing image paths:", e)
+                      
+            for i,avg_path in enumerate(avg_paths):
+             if avg_path:
+                  elements.append(Paragraph(f"Average Percentage: {avg_path}%", styles['Title']))
+                  elements.append(Spacer(1, 24))
+
+        # Handle table data safely
+        data_for_table = [['S.No.', 'Description', 'Distance', 'Percentage']]
+        # if len(json_data) > 3 and isinstance(json_data[0], list):
+        for i, ratio in enumerate(json_data[0]):
+                if isinstance(ratio, dict):
+                    desc1 = ratio.get('Description1', 'N/A')
+                    desc2 = ratio.get('Description2', 'N/A')
+                    description = f"{desc1} -\n {desc2}" if desc2 != 'N/A' else desc1
+                    dist1 = ratio.get('dist1', 'N/A')
+                    dist2 = ratio.get('dist2', 'N/A')
+                    percentage = ratio.get('Percentage', 'N/A')
+                    data_for_table.append([
+                        i + 1,
+                        description,
+                        f"{dist1} - {dist2}",
+                        f"{percentage}%"
+                         
+                    ])
+                    
+                    
+            # print("DGSGSSUK")
+        # Define column widths
+        col_widths = [doc.width / 14, doc.width / 1.3, doc.width / 5, doc.width / 9]
+        table = Table(data_for_table, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Align all text to the left
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.white])
+        ]))
+        elements.append(table)
+        d=doc.build(elements)
+        buffer.seek(0)
+        print(d)
+
+        filepath = UploadedImage.objects.get(id=ids)
+        phi_json = 'pdf_phi/'
+        pdf_path = os.path.join(phi_json, f'phi{ids}.pdf')
+        filepath.phi_pdf= pdf_path
         filepath.save() 
 
+        with open(pdf_path, 'wb') as f:
+            f.write(buffer.getvalue())
+
+        # Return PDF as HTTP response
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="phi{ids}.pdf"'
+        return response
+    
+        # return HttpResponse(response)
+
         
-        def json_data():
-            with open (json_path,'r') as f:
-                return f.read()  
-        s=json_data()
-        #res_json=json.loads(s)
-
-        print("type",type(s))
+      
 
 
-        return HttpResponse(s)
+
+
+        # def json_data():
+        #     with open (json_path,'r') as f:
+        #         return f.read()  
+        # s=json_data()
+        # #res_json=json.loads(s)
+
+        # print("type",type(s))
+
+
+        # return HttpResponse(s)
 
 index=[151,195,18,143,265,468,473,6,54,67,10,297,284,137,205,45,423,352,58,212,0,410,367]
 index1=[151,195,18,143,265,468,473,6]
@@ -1689,6 +2080,7 @@ sym_asym_name2 = [
          'Between eyes'
         ]
 class sym_assym(View):
+
     def get(self, request, ids, *args, **kwargs):
         input_path = r'/input_image/'
         try:
@@ -1917,6 +2309,7 @@ class sym_assym(View):
                     d1=(n,"larger",temp)
                     details1.append(d1)
                 ans.append(temp)
+        
 
         def cal1():
             for v in list3:
@@ -2033,13 +2426,13 @@ class sym_assym(View):
             else:
                 combined_results.append([feature, distance])
 
-        sym_ratios = [[],[]]
+        sym_ratios = [[],[],[],[]]
         for result in combined_results:
             sym_ratios[0].append({
                 "Name": result[0],
-                "Distance": result[1],
+                "Distance": f"{result[1]:.3f}",
                 "Symmetry": result[2] if len(result) > 2 else None,
-                "Percentage": result[3] if len(result) > 2 else None
+                "Percentage": f"{result[3]:.3f}" if len(result) > 2 else None
             })
       
             
@@ -2069,12 +2462,26 @@ class sym_assym(View):
         
         sym_ratios[1].append({
             'output_image':output_path,
-            'output_image1':output_path1,
-            'output_image2':output_path2
-            
-            
+            # 'output_image1':output_path1,
+            # 'output_image2':output_path2
             })
-        print(sym_ratios)
+        sym_ratios[2].append({
+        
+         'output_image1':output_path1,
+        })
+
+
+            
+        sym_ratios[3].append({
+            'output_image2':output_path2
+        })
+
+
+
+
+        print("SYM",type(sym_ratios))
+
+       
 
         filepath = UploadedImage.objects.get(id=ids)
 
@@ -2086,65 +2493,255 @@ class sym_assym(View):
         json_path3=os.path.join(sym_json,f'sym{ids}.json')
         filepath.symmetric_json= json_path3
 
-
                    
         print(output_path)
         filepath.save()
 
 
+        with open (json_path3,'w',encoding="utf-16") as f:
+                
+                # return f.write(res_json) 
+            print("fcre",type(sym_ratios)) 
+            json.dump(sym_ratios,f)
 
-        # cv2.imshow('output_path,'  ,img11)
-        # cv2.imshow('output_path1', img12)
-        # cv2.imshow('output_path2', img13)
-        def json_data():
-         with open (json_path3,'w') as f:
-            return f.write(res_json)
+#modifications
+        # with open(json_path3, 'r', encoding="utf-16") as jsonfile:
+        #     data = json.load(jsonfile)
+        #     print("JSIN DATA",data)
+
+        # buffer = BytesIO()
+        # doc = SimpleDocTemplate(buffer, pagesize=letter)
+        # elements = []
+
+        # # Define styles
+        # styles = getSampleStyleSheet()
+
+        # elements.append(Paragraph("Symmetric Asymmetric Report", styles['Title']))
+
+        # # image_paths = [sym_ratios[1],sym_ratios[2],sym_ratios[3]]
+        # # print("IMG",image_paths)
+
+        # image_paths = []
+        # if isinstance(sym_ratios, (tuple, list)) and len(sym_ratios) > 2:
+        #     image_paths = [sym_ratios[1],sym_ratios[2],sym_ratios[3]]
+        #     #print("image:",image_paths)  # Assume first three are image paths
+
+        # for img_path in image_paths:
+        #     if isinstance(img_path, str):
+        #         elements.append(Image(img_path, width=400, height=500))
+        #         elements.append(Spacer(1, 12))
+        # # Handle table data safely
+        # data_for_table = [['S.No.', 'Name', 'Distance', 'Symmetry', 'Percentage']]
+        # if len(sym_ratios) > 3 and isinstance(sym_ratios[0], list):
+        #     for i, ratio in enumerate(sym_ratios[0]):
+        #         if isinstance(ratio, dict):
+        #             data_for_table.append([
+        #                 i + 1,
+        #                 ratio.get('Name', 'N/A'),
+        #                 (ratio.get('Distance', 0), 3),
+        #                 ratio.get('Symmetry', 'N/A'),
+        #                 f"{(ratio.get('Percentage', 0), 3)}%" if ratio.get('Percentage') else 'N/A'
+        #             ])
+
+        # # Define column widths
+        # col_widths = [doc.width / 14, doc.width / 1.3, doc.width / 5, doc.width / 9]
+        # table = Table(data_for_table, colWidths=col_widths)
+        # table.setStyle(TableStyle([
+        #     ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        #     ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        #     ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Align all text to the left
+        #     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        #     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        #     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        #     ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        #     ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        #     ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        #     ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.white])
+        # ]))
+        # elements.append(table)
+        # d=doc.build(elements)
+        # buffer.seek(0)
+        # print(d)
         
-        res_json=json.dumps(sym_ratios)
-        s=json_data()
-        print('type',type(s))
+        # sym_json = 'pdf_sym/'
+        # pdf_path = os.path.join(sym_json, f'sym{ids}.pdf')
 
-        # sym_proportion_image=
-        # sym_unified_image=
-        # sym_unified_line_image=
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        return HttpResponse("image sucessfully stored for symmetric")
+        # with open(pdf_path, 'wb') as f:
+        #     f.write(buffer.getvalue())
+
+        # # Return PDF as HTTP response
+        # response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        # response['Content-Disposition'] = f'attachment; filename="sym{ids}.pdf"'
+        # #return response
+    
+                    
+                    
 
 
+        response = Response(sym_ratios, content_type='application/json')
+        response.accepted_renderer = JSONRenderer()
+        response.accepted_media_type = 'application/json'
+        response.renderer_context = {}
+        
+
+        return HttpResponse("response")
+        #return response
+       
+         
+    
 class SYM_retrive(View):
     def get(self, request, ids, *args, **kwargs):
-        print(ids)
-        input_path = r'GR_json/'
+        
         try:
+            # Retrieve the file path from the database using the provided id
             filepath = UploadedImage.objects.get(id=ids)
-            json = filepath.symmetric_json
-            print("image->",json)
+            symmetric_json = filepath.symmetric_json
+            
+            # Construct the full file path
+            file_path = os.path.join(symmetric_json)
+            
+            # Open and load the JSON file
+            with open(file_path, 'r', encoding="utf-16") as jsonfile:
+                json_data = json.load(jsonfile)
+            print("J1",type(json_data))
+            
+            # Return the JSON data in the response
+            response = Response(json_data, content_type='application/json')
+            response.accepted_renderer = JSONRenderer()
+            response.accepted_media_type = 'application/json'
+            response.renderer_context = {}
+
+            # image_paths = [sym_ratios[1],sym_ratios[2],sym_ratios[3]]
+            # print("IMG",image_paths)
+
+            return response
+        
         except UploadedImage.DoesNotExist:
-            return HttpResponse('Image not found', status=404)
-   
-        image_path = os.path.join( json)
+            return JsonResponse({"error": "Image not found"}, status=404)
+        except FileNotFoundError:
+            return JsonResponse({"error": "File not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    
 
+class SYM_report(View):
 
-        #re_json = filepath.reference_json
-        json_path = os.path.join(image_path)
-        print("JSON->",json_path)
-        filepath.symmetric_json= json_path
-        # print(output_path)
-        filepath.save() 
-
+    def get(self, request, ids, *args, **kwargs):
+# Retrieve the file path from the database using the provided id
+        filepath = UploadedImage.objects.get(id=ids)
+        symmetric_json = filepath.symmetric_json
         
-        def json_data():
-            with open (json_path,'r') as f:
-                return f.read()  
-        s=json_data()
-        #res_json=json.loads(s)
-
-        print("type",type(s))
-
-
-        return HttpResponse(s)
+        # Construct the full file path
+        file_path = os.path.join(symmetric_json)
         
+        # Open and load the JSON file
+        with open(file_path, 'r', encoding="utf-16") as jsonfile:
+            json_data = json.load(jsonfile)
+        print("J1",json_data)
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        # Define styles
+        styles = getSampleStyleSheet()
+
+        elements.append(Paragraph("Symmetric Asymmetric Report", styles['Title']))
+        elements.append(Spacer(1, 8))
+
+        image_paths = []
+        # custom_style = styles.add(ParagraphStyle(name='CustomStyle', fontSize=12, textColor=colors.red))
+# Check if json_data is a list or tuple and has more than 2 items
+        if isinstance(json_data, (tuple, list)) and len(json_data) >= 3:
+            try:
+                    # Extract image paths from the nested dictionaries
+                    image_paths = [
+                        json_data[1][0].get('output_image'),
+                        json_data[2][0].get('output_image1'),
+                        json_data[3][0].get('output_image2')
+                    ]
+                    print("Image paths:", image_paths)  # Printing extracted image paths
+            except (KeyError, IndexError) as e:
+                    print("Error accessing image paths:", e)
+
+    # Process each image path
+        for i,img_path in enumerate(image_paths):
+            if img_path:
+                elements.append(Image(img_path, width=440, height=563))
+                
+                if i == 0: 
+                     elements.append(Spacer(1, 12)) 
+                     elements.append(Paragraph("Symmetric Proportion", styles['Title']))
+                     
+                elif i == 1:
+                     elements.append(Spacer(1, 12))  
+                     elements.append(Paragraph("Symmetric Unified", styles['Title']))
+                     
+                elif i == 2:
+                     elements.append(Spacer(1, 12))  
+                     elements.append(Paragraph("Symmetric Unified Lines ", styles['Title']))
+                elements.append(Spacer(1, 24))
+
+
+        # Handle table data safely
+        data_for_table = [['S.No.', 'Name', 'Distance', 'Symmetry', 'Percentage']]
+        # if len(json_data) > 3 and isinstance(json_data[0], list):
+        for i, ratio in enumerate(json_data[0]):
+                if isinstance(ratio, dict):
+                    data_for_table.append([
+                        i + 1,
+                        ratio.get('Name', 'N/A'),
+                        ratio.get('Distance', 0),
+                        ratio.get('Symmetry')if ratio.get('Symmetry') else 'N/A',
+                        f"{ratio.get('Percentage', 0)}%" if ratio.get('Percentage') else 'N/A',
+                         
+                    ])
+                    
+                    
+            # print("DGSGSSUK")
+        # Define column widths
+        col_widths = [doc.width / 14, doc.width / 1.3, doc.width / 5, doc.width / 9]
+        table = Table(data_for_table, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Align all text to the left
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.white])
+        ]))
+        elements.append(table)
+        d=doc.build(elements)
+        buffer.seek(0)
+        print(d)
+
+        filepath = UploadedImage.objects.get(id=ids)
+        sym_pdf = 'pdf_sym/'
+        pdf_path = os.path.join(sym_pdf, f'sym{ids}.pdf')
+        filepath.symmetric_pdf= pdf_path
+        filepath.save()
+        
+
+        with open(pdf_path, 'wb') as f:
+            f.write(buffer.getvalue())
+
+        # Return PDF as HTTP response
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="sym{ids}.pdf"'
+        return response
+    
+        # return HttpResponse(response)
+    
+
+
+
+
+
 
 
 
