@@ -11,7 +11,7 @@ import pandas as pd
 
 
 # Define paths and filenames
-folder_path = '/golden_ratio/image'
+folder_path = '/home/ubuntu/goldenratio_backend/Simage'
 # folder_path1='C:/Users/user/PycharmProjects/goldebn ratio/PycharmProjects/pythonProject/golden ratio'
 
 
