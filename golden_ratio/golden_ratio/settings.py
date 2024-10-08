@@ -111,10 +111,10 @@ GRAPHENE = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "golden_ratio1",
+        "NAME": "goldenratio1",
         "USER": "postgres",
         "PASSWORD": "postgres",
-        "HOST": "localhost",
+        "HOST": "goldenratio1.cksekbzc69iq.ap-south-1.rds.amazonaws.com",
         "PORT": "5432",
     }
 }
