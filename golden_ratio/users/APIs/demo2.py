@@ -1,66 +1,974 @@
-        output_path = os.path.join(folder_path,ids+'.jpg')
-        cv2.imwrite(output_path, image)
-        filepath = UploadedImage.objects.get(id=ids)
-        filepath.reference = output_path
-        ratios[2].append({
-                            'output_image': output_path,
-                            
-                        })
-        print(ratios)
-                       
 
-        gr_json='GR_json/'
-        json_path = os.path.join(gr_json,f'gr{ids}.json')
-        print("JSON->",json_path)
-        filepath.reference_json= json_path
-        print(output_path)
-        filepath.save()   
+filter_landmark_shrink = [
+      {
+          'start': 49,
+          'end': 45
+      },
+          {
+              'start': 279,
+              'end': 275
+          },
+
+          # --------------------------------------
+          {
+              'start': 215,
+              'end': 207
+          },
+          {
+              'start': 435,
+              'end': 427
+          },
+          # --------------------------------------
+          {
+              'start': 58,
+              'end': 216
+          },
+          {
+              'start': 288,
+              'end': 436
+          },
+
+          {
+              'start': 138,
+              'end': 214
+          },
+          {
+              'start': 367,
+              'end': 434
+          },
+
+          # ----------------------------------------
+          # {
+          #     'start':123,
+          #     'end':101
+          # },
+          # {
+          #     'start':352,
+          #     'end':330
+          # },
+          # #--------------------------------------
+          {
+              'start': 187,
+              'end': 205
+          },
+          {
+              'start': 411,
+              'end': 425
+          },
+          # -------------------------------------
+          {
+              'start': 216,
+              'end': 92
+          },
+          {
+              'start': 436,
+              'end': 322
+          },
+          # ------------------------------------
+          {
+              'start': 234,
+              'end': 116
+          },
+          {
+              'start': 454,
+              'end': 345
+          },
+          # #-----------------------------------
+          {
+              'start': 44,
+              'end': 51
+          },
+          {
+              'start': 27,
+              'end': 281
+          },
+          {
+              'start': 5,
+              'end': 197
+          },
+          {
+              'start': 6,
+              'end': 8
+          },
+          {
+              'start': 48,
+              'end': 51
+          },
+          {
+              'start': 278,
+              'end': 281
+          },
+
+          # -------------------------------------------
+          {
+              'start': 105,
+              'end': 103
+          },
+          {
+              'start': 334,
+              'end': 332
+          },
+
+          {
+              'start': 21,
+              'end': 70
+          },
+          {
+              'start': 251,
+              'end': 300
+          },
+
+          # ------------------------------------------
+          {
+              'start': 178,
+              'end': 83
+          },
+          {
+              'start': 400,
+              'end': 313
+          },
+          {
+              'start': 152,
+              'end': 200
+          },
+          # ------------------------------------
+          {
+              'start': 172,
+              'end': 146
+          },
+          {
+              'start': 397,
+              'end': 375
+          },
+
+          # {
+          #     'start': 13,
+          #     'end': 0
+          # },
+          # {
+          #     'start': 14,
+          #     'end': 200
+          # },
+          # # -------------------------------
+          # {
+          #     'start': 105,
+          #     'end': 10
+          # },
+          # {
+          #     'start': 334,
+          #     'end': 105
+          # },
+
+          # ---------------------------------------------------
+
+          {
+              'start': 47,
+              'end': 122
+          },
+          {
+              'start': 277,
+              'end': 351
+          },
+          # # -------------------------------------------------------
+          # #
+          # # {
+          # #     'start':50,
+          # #     'end':126
+          # # },
+          # # {
+          # #     'start':280,
+          # #     'end':355
+          # # },
+          {
+              'start': 187,
+              'end': 117
+          },
+          {
+              'start': 411,
+              'end': 346
+          },
+          # # {
+          # #     'start':150,
+          # #     'end':214
+          # # },
+          # # {
+          # #     'start':379,
+          # #     'end':434
+          # # },
+
+          # *************************************************************
+          # {
+          #     'start': 10,
+          #     'end': 338
+          # },
+          # {
+          #     'start': 297,
+          #     'end': 332
+          # },
+          # {
+          #     'start': 284,
+          #     'end': 251
+          # },
+          # {
+          #     'start': 389,
+          #     'end': 356
+          # },
+          #
+          # {
+          #     'start': 454,
+          #     'end': 323
+          # },
+          # {
+          #     'start': 361,
+          #     'end': 288
+          # },
+          # {
+          #     'start': 397,
+          #     'end': 365
+          # },
+          # {
+          #     'start': 379,
+          #     'end': 378
+          # },
+          # {
+          #     'start': 400,
+          #     'end': 377
+          # },
+          # {
+          #     'start': 152,
+          #     'end': 148
+          # },
+          # {
+          #     'start': 176,
+          #     'end': 149
+          # },
+          # {
+          #     'start': 150,
+          #     'end': 136
+          # },
+          # {
+          #     'start': 172,
+          #     'end': 58
+          # },
+          # {
+          #     'start': 132,
+          #     'end': 93
+          # },
+          # {
+          #     'start': 234,
+          #     'end': 127
+          # },
+          # {
+          #     'start': 162,
+          #     'end': 21
+          # },
+          # {
+          #     'start': 54,
+          #     'end': 103
+          # },
+          # {
+          #     'start': 67,
+          #     'end': 109
+          # },
+
+          # {
+          #     'start': 101,
+          #     'end': 126
+          # },
+          # {
+          #     'start': 330,
+          #     'end': 355
+          # },
+          #
+          # {
+          #     'start': 1
+          # 37,
+          #     'end': 123
+          # },
+          # {
+          #     'start': 50,
+          #     'end': 36
+          # },
+          #
+          # {
+          #     'start': 366,
+          #     'end': 352
+          # },
+          # {
+          #     'start': 280,
+          #     'end': 266
+          # },
+          # {
+          #     'start': 201,
+          #     'end': 200
+          # },
+          # {
+          #     'start': 421,
+          #     'end': 200
+          # },
+          # # ----------------------------------------------------------------
+
+          #
+          # # #
+          # # # # #----------------------------------------------------------------
+          # {
+          #     'start': 4,
+          #     'end': 195
+          # },
+          # {
+          #     'start': 197,
+          #     'end': 168
+          # },
+          # {
+          #     'start': 8,
+          #     'end': 151
+          # },
+          #
+          # # ----------------------------------------------------------------
+          {
+              'start': 123,
+              'end': 50
+          },
+          {
+              'start': 352,
+              'end': 280
+          },
+          {
+              'start': 187,
+              'end': 207
+          },
+          {
+              'start': 411,
+              'end': 427
+          },
+          ###############################################
+          #       {
+          #           'start': 205,
+          #           'end': 203
+          #       },
+          #       {
+          #           'start': 425,
+          #           'end': 423
+          #       },
+          #
+          #       {
+          #           'start': 214,
+          #           'end': 201
+          #       },
+          #       {
+          #           'start': 434,
+          #           'end': 421
+          #       },
+          #
+          #       {
+          #           'start': 149,
+          #           'end': 212
+          #       },
+          #       {
+          #           'start': 432,
+          #           'end': 378
+          #       },
+          #############################################################
+    
+          
+          {
+              'start': 58,
+              'end': 215
+          },
+          
+          {
+              'start': 172,
+              'end': 138
+          },
+          {
+              'start': 136,
+              'end': 135
+          },
+          {
+              'start': 150,
+              'end': 169
+          },
+          {
+              'start': 288,
+              'end': 435
+          },
+          {
+              'start': 397,
+              'end': 367
+          },
+          {
+              'start': 365,
+              'end': 364
+          },
+          {
+              'start': 379,
+              'end': 394
+          },
+          # ----------------------------------------------------
+          #
+          # {
+          #     'start': 69,
+          #     'end': 151
+          # },
+          # {
+          #     'start': 299,
+          #     'end': 151
+          # },
+          # #
+          # {
+          #     'start': 9,
+          #     'end': 67
+          # },
+          # {
+          #     'start': 9,
+          #     'end': 338
+          # },
+          # #-----------------------------------------
+
+          # {
+          #      'start':107,
+          #  'end':69
+          # },
+          # {
+          #      'start':69,
+          #  'end':105
+          # },
+          # {
+          #     'start':105,
+          #     'end':104
+          # },
+          # {
+          #     'start':104,
+          #     'end':54
+          # },
+          # {1
+          #     'start':336,
+          #     'end':299
+          # },
+          # {
+          #     'start':299,
+          #     'end':334
+          # },
+          # {
+          #     'start':334,
+          #     'end':333
+          # },
+          # {
+          #     'start':333,
+          #     'end':284
+          # },
+          #     #------------------------------------------
+          {
+              'start': 127,
+              'end': 190
+          },
+          {
+              'start': 356,
+              'end': 414
+          },
+
+          {
+              'start': 107,
+              'end': 55
+          },
+          {
+              'start': 336,
+              'end': 285
+          },
+
+          {
+              'start': 149,
+              'end': 200
+          },
+          {
+              'start': 378,
+              'end': 200
+          },
+          # -------------------------------
+          # {
+          #     'start': 107,
+          #     'end': 69
+          # },
+          # {
+          #     'start': 69,
+          #     'end': 105
+          # },
+          # {
+          #     'start': 105,
+          #     'end': 104
+          # },
+          # {
+          #     'start': 104,
+          #     'end': 54
+          # },
+          # {
+          #     'start': 336,
+          #     'end': 299
+          # },
+          # {
+          #     'start': 299,
+          #     'end': 334
+          # },
+          # {
+          #     'start': 334,
+          #     'end': 333
+          # },
+          # {
+          #     'start': 333,
+          #     'end': 284
+          # },
+          #
+          # {
+          #     'start': 69,
+          #     'end': 151
+          # },
+          # {
+          #     'start': 299,
+          #     'end': 151
+          # },
+          # #
+          # {
+          #     'start': 9,
+          #     'end': 67
+          # },
+          # {
+          #     'start': 9,
+          #     'end': 338
+          # },
+#======================================================
+      # {
+      #     'start': 172,
+      #     'end': 138
+      # },
+      # {
+      #     'start': 136,
+      #     'end': 135
+      # },
+      # {
+      #     'start': 150,
+      #     'end': 169
+      # },
+      # {
+      #     'start': 397,
+      #     'end': 367
+      # },
+      # {
+      #     'start': 365,
+      #     'end': 364
+      # },
+      # {
+      #     'start': 379,
+      #     'end': 394
+      # },
+      #
+      # {
+      #     'start': 107,
+      #     'end': 69
+      # },
+      # {
+      #     'start': 69,
+      #     'end': 105
+      # },
+      # {
+      #     'start': 105,
+      #     'end': 104
+      # },
+      # {
+      #     'start': 104,
+      #     'end': 54
+      # },
+      # {
+      #     'start': 336,
+      #     'end': 299
+      # },
+      # {
+      #     'start': 299,
+      #     'end': 334
+      # },
+      # {
+      #     'start': 334,
+      #     'end': 333
+      # },
+      # {
+      #     'start': 333,
+      #     'end': 284
+      # },
+
+      {
+          'start': 69,
+          'end': 151
+      },
+      {
+          'start': 299,
+          'end': 151
+      },
+      #
+      {
+          'start': 9,
+          'end': 67
+      },
+      {
+          'start': 9,
+          'end': 338
+      },
+      #
+      # {
+      #     'start': 101,
+      #     'end': 126
+      # },
+      # {
+      #     'start': 330,
+      #     'end': 355
+      # },
+      #
+      # {
+      #     'start': 137,
+      #     'end': 123
+      # },
+      # {
+      #     'start': 50,
+      #     'end': 36
+      # },
+      #
+      # {
+      #     'start': 366,
+      #     'end': 352
+      # },
+      # {
+      #     'start': 280,
+      #     'end': 266
+      # },
+      # {
+      #     'start': 187,
+      #     'end': 117
+      # }, 
+      # {
+      #     'start': 411,
+      #     'end': 346
+      # },
+        {
+            'start':9,
+            'end': 10
+        },
+#-------------------------------------
+ 
+  ]
 
 
-        with open (json_path,'w',encoding="utf-16") as f:
-                    
-                        # return f.write(res_json) 
-                    print("fcre",ratios) 
-                    json.dump(ratios,f)
-                response = Response(ratios, content_type='application/json')
-                response.accepted_renderer = JSONRenderer()
-                response.accepted_media_type = 'application/json'
-                response.renderer_context = {}
+filter_landmark_bulge = [
 
-                return HttpResponse("response")
-                        # s=json_data()
-                        # print(type(s))
-                
-                # return HttpResponse("image succxessfully stored for golden ratio")
-                #return HttpResponse()
+      # upper_eye
 
-class GR_retrive(View):
-    def get(self, request, ids, *args, **kwargs):
-        try:
-            # Retrieve the file path from the database using the provided id
-            filepath = UploadedImage.objects.get(id=ids)
-            reference_json = filepath.reference_json
-            
-            # Construct the full file path
-            file_path = os.path.join(reference_json)
-            
-            # Open and load the JSON file
-            with open(file_path, 'r', encoding="utf-16") as jsonfile:
-                json_data = json.load(jsonfile)
-            
-            # Return the JSON data in the response
-            response = Response(json_data, content_type='application/json')
-            response.accepted_renderer = JSONRenderer()
-            response.accepted_media_type = 'application/json'
-            response.renderer_context = {}
-            
-            return response
-        
-        except UploadedImage.DoesNotExist:
-            return JsonResponse({"error": "Image not found"}, status=404)
-        except FileNotFoundError:
-            return JsonResponse({"error": "File not found"}, status=404)
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+      {
+          'start': 158,
+          'end': 65
+      },
+      {
+          'start': 160,
+          'end': 52
+      },
+      {
+          'start': 246,
+          'end': 224
+      },
 
-        
+      {
+          'start': 385,
+          'end': 295
+      },
+      {
+          'start': 387,
+          'end': 282
+      },
+      {
+          'start': 466,
+          'end': 444
+      },
+
+      # lower_eye
+
+      {
+          'start': 153,
+          'end': 120
+      },
+
+      {
+          'start': 145,
+          'end': 101
+      },
+
+      {
+          'start': 163,
+          'end': 118
+      },
+
+      # add
+      {
+          'start': 380,
+          'end': 349
+      },
+      {
+          'start': 374,
+          'end': 330
+      },
+      {
+          'start': 390,
+          'end': 374
+      },
+
+
+      #-------------------------------------------------------
+      {
+          'start': 215,
+          'end': 207
+      },
+      {
+          'start': 435,
+          'end': 427
+      },
+
+      {
+          'start': 187,
+          'end': 205
+      },
+      {
+          'start': 411,
+          'end': 425
+      },
+
+
+
+
+      {
+          'start': 187,
+          'end': 117
+      },
+      {
+          'start': 411,
+          'end': 346
+      },
+
+#
+## *************************************************************
+      {
+          'start': 10,
+          'end': 338
+      },
+      {
+          'start': 297,
+          'end': 332
+      },
+      {
+          'start': 284,
+          'end': 251
+      },
+      {
+          'start': 389,
+          'end': 356
+      },
+      
+      {
+          'start': 454,
+          'end': 323
+      },
+      {
+          'start': 361,
+          'end': 288
+      },
+      {
+          'start': 397,
+          'end': 365
+      },
+      {
+          'start': 379,
+          'end': 378
+      },
+      {
+          'start': 400,
+          'end': 377
+      },
+      {
+          'start': 152,
+          'end': 148
+      },
+      {
+          'start': 176,
+          'end': 149
+      },
+      {
+          'start': 150,
+          'end': 136
+      },
+      {
+          'start': 172,
+          'end': 58
+      },
+      {
+          'start': 132,
+          'end': 93
+      },
+      {
+          'start': 234,
+          'end': 127
+      },
+      {
+          'start': 162,
+          'end': 21
+      },
+      {
+          'start': 54,
+          'end': 103
+      },
+      {
+          'start': 67,
+          'end': 109
+      },
+      {
+          'start': 109,
+          'end': 10
+      },
+# #===========================
+      {
+          'start': 172,
+          'end': 138
+      },
+      {
+          'start': 136,
+          'end': 135
+      },
+      {
+          'start': 150,
+          'end': 169
+      },
+      {
+          'start': 397,
+          'end': 367
+      },
+      {
+          'start': 365,
+          'end': 364
+      },
+      {
+          'start': 379,
+          'end': 394
+      },
+# # #=========================================================
+
+#add
+      {
+          'start': 14,
+          'end': 0
+      },
+      {
+          'start': 14,
+          'end': 18
+      },
+
+
+# #add
+#       {
+#           'start': 172,
+#           'end': 138
+#       },
+#       {
+#           'start': 136,
+#           'end': 135
+#       },
+#       {
+#           'start': 150,
+#           'end': 169
+#       },
+#       {
+#           'start': 397,
+#           'end': 367
+#       },
+#       {
+#           'start': 365,
+#           'end': 364
+#       },
+#       {
+#           'start': 379,
+#           'end': 394
+#       },
+
+#-----------------------------------
+      {
+          'start': 192,
+          'end': 58
+      },
+  {
+          'start': 192,
+          'end': 172
+      },
+  {
+          'start': 214,
+          'end': 172
+      },
+  {
+          'start': 416,
+          'end': 288
+      },
+  {
+          'start': 416,
+          'end': 397
+      },
+  {
+          'start': 434,
+          'end': 397
+      },
+#-----------------------------------------
+      # {
+      #     'start': 107,
+      #     'end': 69
+      # },
+      # {
+      #     'start': 69,
+      #     'end': 105
+      # },
+      # {
+      #     'start': 105,
+      #     'end': 104
+      # },
+      # {
+      #     'start': 104,
+      #     'end': 54
+      # },
+      # {
+      #     'start': 336,
+      #     'end': 299
+      # },
+      # {
+      #     'start': 299,
+      #     'end': 334
+      # },
+      # {
+      #     'start': 334,
+      #     'end': 333
+      # },
+      # {
+      #     'start': 333,
+      #     'end': 284
+      # },
+  ]
+
+# shrink_values =[]
+# def landmarks_shrink():
+#     for item in json_data2[0]:
+#      for landmark in filter_landmark:
+#         id_value = item[landmark['start']]
+#         id_value1 = item[landmark['end']]
+#         landmark1 = (id_value['x'],id_value['y'],id_value['z'])
+#         landmark2 = (id_value1['x'],id_value1['y'],id_value1['z'])
+#         distance1 = np.linalg.norm(np.array(landmark2)-np.array(landmark1))
+#         values =distance1
+
+#         shrink_values.append(values)
+#     return shrink_values
+# s=landmarks_shrink()
+# print(len(s))
+# print(s)
+# with open("input_amt_shrink.json" ,'w') as f:
+#     f.write(f"{s}")
+
+print(len(filter_landmark_shrink))
+print(len(filter_landmark_bulge))

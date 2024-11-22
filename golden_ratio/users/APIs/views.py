@@ -11,6 +11,7 @@ import os
 import json
 import mediapipe as mp
 import numpy as np
+import math
 
 
 from .landmarks import l1
@@ -27,18 +28,24 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Image, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-
-
 import re
 # from .refer import filter_landmark3 ,filter_landmark4,rft_arr,rft1_arr
 # from PIL import Image
 import cv2
+
+# from PIL import Image
+from .image import inpt_image
+from .demo2 import filter_landmark_shrink as filter_landmark_s
+from .demo2 import filter_landmark_bulge as filter_landmark_b
+from .shape import predict_shape_face , classes
+
 folder_path = 'golden_ratio_output/'
 folder_path1= 'input_as_reference_output/'
 folder_path2= 'phi_matrix_output/'
 folder_path3= 'image_proportion_sym/'
 folder_path4='image_unified_sym/'
 folder_path5='image_unified_line_sym/'
+folder_path6='shrink_bulge_output/'
 
 # r1=rft_arr
 # r2=rft1_arr
@@ -153,88 +160,6 @@ def idraw_lines_with_text1(image, landmarks, landmark_pairs):
     return image, sum2, green, distances  # Return the list of distances
 #-----------------------------input as referebce----------------
 a=[]
-# input_as_reference_Name=['Distance between the eyes',
-# 'Width of right eye ',
-# 'Width of left eye ',
-# 'End of the arc to length of the right eyebrow',
-# 'End of the arc to length of the left eyebrow',
-# 'Right mouth edge to side of the face ',
-# 'Left mouth edge to side of the face',
-# 'Center of mouth to chin',
-# 'Width of upper lip',
-# 'Width of the nose',
-# 'Width of forehead',
-# 'Width of the chin']
-
-# input_as_reference_Name2=['Distance from right eye inner edge to side of face',
-# 'Distance from left eye inner edge to side of face',
-# 'Width of the right eyebrow',
-# 'Width of the left eyebrow',
-# 'Length of the nose',
-# 'Width of the mouth',
-# 'Starting of the nose to center of the mouth',
-# 'Width of lower lip',
-# 'Right eye inner edge to cheekbone',
-# 'Left eye inner edge to cheekbone',
-# 'Centre of forehead to right side of face',
-# 'Centre of forehead to left side of face' ]
-
-# inpt_arr=[]
-# inpt1_arr=[]
-#value1
-
-# def rdraw_lines_with_text(image, landmarks, landmark_pairs):
-#     reference_real_world_size = 3.5
-
-#     for pair in landmark_pairs:
-#         start_idx = pair['start']
-#         end_idx = pair['end']
-#         start_pt = landmarks[start_idx]
-#         end_pt = landmarks[end_idx]
-#         distance = np.linalg.norm(np.array(start_pt) - np.array(end_pt))/reference_real_world_size
-#         inpt_arr.append(float(f"{distance:.3f}"))
-
-#         cv2.line(image, start_pt, end_pt, (0, 0, 255, 0), 2)
-
-#         # Calculate the midpoint
-#         midpoint = ((start_pt[0] + end_pt[0]) // 2, (start_pt[1] + end_pt[1]) // 2)
-
-#         # Adjust the position of the text to be above the line
-#         text_position = (midpoint[0], midpoint[1] - 10)
-
-#         #Annotate with the label
-#         #cv2.putText(image, label, text_position, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-
-#     return image
-
-# # value 1.618
-
-# def rdraw_lines_with_text1(image, landmarks, landmark_pairs):
-#     reference_real_world_size = 3.5
-
-#     for pair in landmark_pairs:
-#         start_idx = pair['start']
-#         end_idx = pair['end']
-#         start_pt = landmarks[start_idx]
-#         end_pt = landmarks[end_idx]
-#         distance = np.linalg.norm(np.array(start_pt) - np.array(end_pt))/reference_real_world_size
-#         inpt1_arr.append(float(f"{distance:.3f}"))
-
-#         #Draw the line
-#         cv2.line(image, start_pt, end_pt, (0, 255, 0), 2)
-
-#         # Calculate the midpoint
-#         midpoint = ((start_pt[0] + end_pt[0]) // 2, (start_pt[1] + end_pt[1]) // 2)
-
-#         # Adjust the position of the text to be above the line
-#         text_position = (midpoint[0], midpoint[1] - 10)
-
-#         #Annotate with the label
-#        # cv2.putText(image, str(w), text_position, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-
-#     return image
-
-
 def apply_filter(image, landmarks, landmark_indices):
 
     for idx in landmark_indices:
@@ -311,6 +236,7 @@ class golden_ratio(View):
         # return  output_path , ratios, avg
         output_path = os.path.join(folder_path,ids+'.jpg')
         cv2.imwrite(output_path, image)
+
         filepath = UploadedImage.objects.get(id=ids)
         filepath.reference = output_path
         ratios[2].append({
@@ -2504,80 +2430,6 @@ class sym_assym(View):
             print("fcre",type(sym_ratios)) 
             json.dump(sym_ratios,f)
 
-#modifications
-        # with open(json_path3, 'r', encoding="utf-16") as jsonfile:
-        #     data = json.load(jsonfile)
-        #     print("JSIN DATA",data)
-
-        # buffer = BytesIO()
-        # doc = SimpleDocTemplate(buffer, pagesize=letter)
-        # elements = []
-
-        # # Define styles
-        # styles = getSampleStyleSheet()
-
-        # elements.append(Paragraph("Symmetric Asymmetric Report", styles['Title']))
-
-        # # image_paths = [sym_ratios[1],sym_ratios[2],sym_ratios[3]]
-        # # print("IMG",image_paths)
-
-        # image_paths = []
-        # if isinstance(sym_ratios, (tuple, list)) and len(sym_ratios) > 2:
-        #     image_paths = [sym_ratios[1],sym_ratios[2],sym_ratios[3]]
-        #     #print("image:",image_paths)  # Assume first three are image paths
-
-        # for img_path in image_paths:
-        #     if isinstance(img_path, str):
-        #         elements.append(Image(img_path, width=400, height=500))
-        #         elements.append(Spacer(1, 12))
-        # # Handle table data safely
-        # data_for_table = [['S.No.', 'Name', 'Distance', 'Symmetry', 'Percentage']]
-        # if len(sym_ratios) > 3 and isinstance(sym_ratios[0], list):
-        #     for i, ratio in enumerate(sym_ratios[0]):
-        #         if isinstance(ratio, dict):
-        #             data_for_table.append([
-        #                 i + 1,
-        #                 ratio.get('Name', 'N/A'),
-        #                 (ratio.get('Distance', 0), 3),
-        #                 ratio.get('Symmetry', 'N/A'),
-        #                 f"{(ratio.get('Percentage', 0), 3)}%" if ratio.get('Percentage') else 'N/A'
-        #             ])
-
-        # # Define column widths
-        # col_widths = [doc.width / 14, doc.width / 1.3, doc.width / 5, doc.width / 9]
-        # table = Table(data_for_table, colWidths=col_widths)
-        # table.setStyle(TableStyle([
-        #     ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        #     ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        #     ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Align all text to the left
-        #     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        #     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        #     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        #     ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        #     ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-        #     ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        #     ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.white])
-        # ]))
-        # elements.append(table)
-        # d=doc.build(elements)
-        # buffer.seek(0)
-        # print(d)
-        
-        # sym_json = 'pdf_sym/'
-        # pdf_path = os.path.join(sym_json, f'sym{ids}.pdf')
-
-        # with open(pdf_path, 'wb') as f:
-        #     f.write(buffer.getvalue())
-
-        # # Return PDF as HTTP response
-        # response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-        # response['Content-Disposition'] = f'attachment; filename="sym{ids}.pdf"'
-        # #return response
-    
-                    
-                    
-
-
         response = Response(sym_ratios, content_type='application/json')
         response.accepted_renderer = JSONRenderer()
         response.accepted_media_type = 'application/json'
@@ -2588,6 +2440,10 @@ class sym_assym(View):
         #return response
        
          
+    
+
+
+
     
 class SYM_retrive(View):
     def get(self, request, ids, *args, **kwargs):
@@ -2736,9 +2592,380 @@ class SYM_report(View):
         return response
     
         # return HttpResponse(response)
+#--------------------------------------------------------------
+folder_paths = 'C:/Users/user/PycharmProjects/goldebn ratio/PycharmProjects/pythonProject/app_folder'
+json_name = 'ref_coordinates_shrink.json'
+json_name1 = 'ref_coordinates_bulge.json'
+json_name2 = 'input_coordinates.json'
+
+ref_shrink_values = []
+ref_bulge_values = []
+ 
+with open(os.path.join(folder_paths, json_name), 'r') as jsonfile:
+    json_data = json.load(jsonfile)
+
+with open(os.path.join(folder_paths, json_name1), 'r') as jsonfile1:
+    json_data1 = json.load(jsonfile1)
+
+with open(os.path.join(folder_paths, json_name2), 'r') as jsonfile2:
+    json_data2 = json.load(jsonfile2)
+
+input_shrink_values = []
+input_bulge_values = []
+
+input_ref_diffrence_shrink = []
+input_ref_diffrence_bulge = []
+
+shrink_amount = []
+bulge_amount = []
+
+class Shrin_Bulge(View):
+    
+    def get(self, request, ids, *args, **kwargs):
+            
+        input_path = r'/input_image/'
+        try:
+            filepath = UploadedImage.objects.get(id=ids)
+            print("image->",filepath)
+        except UploadedImage.DoesNotExist:
+            return HttpResponse('Image not found', status=404)
+        if 'input_image' in filepath.file_upload.name:
+            image_path = filepath.file_upload.path 
+            print("file->",image_path)
+        else:
+            image_path = os.path.join(input_path, filepath.file_upload.name)
+        if not os.path.exists(image_path):
+            return HttpResponse(f"File not found at path: {image_path}", status=404)
+        image = cv2.imread(image_path)
+        #print(image)
+        if image is None:
+            return HttpResponse('Could not read image', status=400)
+        _, img_encoded = cv2.imencode('.jpg', image)
+        # img_bytes = img_encoded.tobytes()
+        
+        shrk_blg_ratios = [[]]
+        def input_distance_coordinates_shrink():
+            for item in json_data2[0]:
+                for landmark in filter_landmark_s:
+                    id_value = item[landmark['start']]
+                    id_value1 = item[landmark['end']]
+                    landmark1 = (id_value['x'], id_value['y'], id_value['z'])
+                    landmark2 = (id_value1['x'], id_value1['y'], id_value1['z'])
+                    distance1 = np.linalg.norm(np.array(landmark2) - np.array(landmark1))
+                    values = distance1
+
+                    input_shrink_values.append(values)
+            return input_shrink_values
+
+
+        s = input_distance_coordinates_shrink()
+        print(len(s))
+        print(s)
+
+        
+
+        def input_distance_coordinates_bulge():
+            for item in json_data2[0]:
+                for landmark in filter_landmark_b:
+                    id_value = item[landmark['start']]
+                    id_value1 = item[landmark['end']]
+                    landmark1 = (id_value['x'], id_value['y'], id_value['z'])
+                    landmark2 = (id_value1['x'], id_value1['y'], id_value1['z'])
+                    distance1 = np.linalg.norm(np.array(landmark2) - np.array(landmark1))
+                    values = distance1
+                    input_bulge_values.append(values)
+
+            return input_bulge_values
+
+
+        b = input_distance_coordinates_bulge()
+        print(len(b))
+        print(b)
+
+
+        # input distance---------------------------------------------------------------
+
+        def reference_distance_coordinates_shrink():
+            for item in json_data[0]:
+                for landmark in filter_landmark_s:
+                    id_value = item[landmark['start']]
+                    id_value1 = item[landmark['end']]
+                    landmark1 = (id_value['x'], id_value['y'], id_value['z'])
+                    landmark2 = (id_value1['x'], id_value1['y'], id_value1['z'])
+                    distance = np.linalg.norm(np.array(landmark2) - np.array(landmark1))
+                    values = distance
+                    ref_shrink_values.append(values)
+            return ref_shrink_values
+
+
+        rs = reference_distance_coordinates_shrink()
+        print(len(rs))
+        print(rs)
+
+
+        def reference_distance_coordinates_bulge():
+            for item in json_data1[0]:
+                for landmark in filter_landmark_b:
+                    id_value = item[landmark['start']]
+                    id_value1 = item[landmark['end']]
+                    landmark1 = (id_value['x'], id_value['y'], id_value['z'])
+                    landmark2 = (id_value1['x'], id_value1['y'], id_value1['z'])
+                    distance = np.linalg.norm(np.array(landmark2) - np.array(landmark1))
+                    values = distance
+                    ref_bulge_values.append(values)
+            return ref_bulge_values
+
+
+        rb = reference_distance_coordinates_bulge()
+        print(len(rb))
+        print(rb)
+
+        #---------------------------------------------------------------------------
+
+
+
+        def input_reference_difference_shrink():
+            print(ref_shrink_values)
+            print(input_shrink_values)
+
+            for landmark, i, j in zip(filter_landmark_s, input_shrink_values, ref_shrink_values):
+                s = j - i
+                d = i + s
+                print(d)
+                if not str(d).startswith('0.0'):
+                    d = (d) * 10 ** -1
+
+                    values = {'l': landmark['end'], 'amount': d}
+                    input_ref_diffrence_shrink.append(d)
+                    shrink_amount.append(values)
+                else:
+                    d = (d) * 10 ** -1
+                    values = {'l': landmark['end'], 'amount': d}
+                    input_ref_diffrence_shrink.append(d)
+                    shrink_amount.append(values)
+
+            return shrink_amount
+            # return input_ref_diffrence_shrink
+
+
+        irs = input_reference_difference_shrink()
+        print(irs)
+
+
+        def input_reference_difference_bulge():
+            print(ref_bulge_values)
+            print(input_bulge_values)
+            for landmark, i, j in zip(filter_landmark_b, input_bulge_values, ref_bulge_values):
+                s = j - i
+                d = i - s
+                print(d)
+                if not str(d).startswith('0.0'):
+                    d = (d) * 10 ** -1
+
+                    values = {'l': landmark['end'], 'amount': -d}
+                    input_ref_diffrence_bulge.append(d)
+                    bulge_amount.append(values)
+                else:
+                    d = (d) * 10 ** -1
+                    values = {'l': landmark['end'], 'amount': -d}
+                    input_ref_diffrence_bulge.append(d)
+                    bulge_amount.append(values)
+
+            return bulge_amount
+            # return input_ref_diffrence_bulge
+
+        irb = input_reference_difference_bulge()
+        print(irb)
+
+        mp_face_mesh = mp.solutions.face_mesh
+        face_mesh = mp_face_mesh.FaceMesh(refine_landmarks=True)
+
+        f_img =image_path
+
+        im_cv = cv2.imread(f_img)
+
+        (h, w, _) = im_cv.shape
+        scale_x = 1.0
+        scale_y = 1.0
+        radius = min(w, h) / 2
+
+
+        flex_x = np.zeros((h, w), np.float32)
+        flex_y = np.zeros((h, w), np.float32)
+
+        results = face_mesh.process(im_cv)
+        landmarks_data = {}
+        def shrink(im_cv):
+            if results.multi_face_landmarks:
+                my_list = shrink_amount
+
+
+            for element in my_list:
+                landmark_index = element['l']
+        
+                amount = element['amount']
+                landmark_point = results.multi_face_landmarks[0].landmark[landmark_index]
+                #print(amount)
+                center_x = int(landmark_point.x * im_cv.shape[1])
+                center_y = int(landmark_point.y * im_cv.shape[0])
+
+
+                for y in range(h):
+                    delta_y = scale_y * (y - center_y)
+                    for x in range(w):
+                        delta_x = scale_x * (x - center_x)
+                        distance = delta_x * delta_x + delta_y * delta_y
+                        if distance >= (radius * radius):
+                            flex_x[y, x] = x
+                            flex_y[y, x] = y
+                        else:
+                            factor = 1.0
+                            if distance > 0.0:
+                                factor = math.pow(math.sin(math.pi * math.sqrt(distance) / radius / 2), -amount)
+                            flex_x[y, x] = factor * delta_x / scale_x + center_x
+                            flex_y[y, x] = factor * delta_y / scale_y + center_y
+
+                dst = cv2.remap(im_cv, flex_x, flex_y, cv2.INTER_LINEAR)
+                im_cv=dst
+            return im_cv
+
+        def bulge(im_cv):
+            if results.multi_face_landmarks:
+                my_list = bulge_amount
+
+
+            for element in my_list:
+                landmark_index = element['l']
+        
+                amount = element['amount']
+                landmark_point = results.multi_face_landmarks[0].landmark[landmark_index]
+                #print(amount)
+                center_x = int(landmark_point.x * im_cv.shape[1])
+                center_y = int(landmark_point.y * im_cv.shape[0])
+
+
+                for y in range(h):
+                    delta_y = scale_y * (y - center_y)
+                    for x in range(w):
+                        delta_x = scale_x * (x - center_x)
+                        distance = delta_x * delta_x + delta_y * delta_y
+                        if distance >= (radius * radius):
+                            flex_x[y, x] = x
+                            flex_y[y, x] = y
+                        else:
+                            factor = 1.0
+                            if distance > 0.0:
+                                factor = math.pow(math.sin(math.pi * math.sqrt(distance) / radius / 2), -amount)
+                            flex_x[y, x] = factor * delta_x / scale_x + center_x
+                            flex_y[y, x] = factor * delta_y / scale_y + center_y
+
+
+                dst = cv2.remap(im_cv, flex_x, flex_y, cv2.INTER_LINEAR)
+                im_cv=dst
+            return im_cv
+        output_file_shrink =os.path.join(folder_paths,'modified_image_shrink.jpg')
+        output_file_bulge = os.path.join(folder_paths,'modified_image_bulge.jpg')
+        in_img = f_img
+        inpt = cv2.imread(in_img)
+
+        #
+        # option=input("1.shrink or 2.bulge")
+
+        
+        # a=Image.open(output_file_shrink)
+        # a.save(os.path.join(folder_paths,"output_image_shrink.jpg"),quality=90000)
+
+
+
+        
+        # b=Image.open(output_file_bulge)
+        # b.save(os.path.join(folder_paths,"output_image_bulge.jpg"),quality=90000)
+
+
+        shape = predict_shape_face(image_path)
+        print("Shape:",shape)
+
+        if shape == classes[1] or shape == classes[2] or shape == classes[3] :
+            dst=shrink(im_cv)
+            cv2.imwrite(output_file_shrink, dst)
+            ks=np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
+            shrink_shape=cv2.filter2D(src=dst,ddepth=-1,kernel=ks)
+            cv2.imshow('image_shrink',shrink_shape)
+
+            shrink_bulge_output_path = os.path.join(folder_path6,ids+'.jpg') 
+            cv2.imwrite(shrink_bulge_output_path, shrink_shape)
+
+            # filepath = UploadedImage.objects.get(id=ids)
+            # filepath.shrink_bulge_image= shrink_bulge_output_path
+
+            # shrk_blg_ratios[0].append({
+            #     "output_image":shrink_bulge_output_path
+            # })
+
+            # shrink_bulge_json='SHRK_BLG_json'
+            # json_path = os.path.join(shrink_bulge_json,f'shrink_bulge{ids}.json')
+            # print("JSON->", json_path)
+            # filepath.shrink_bulge_json= json_path
+            # print(shrink_bulge_output_path)
+            # filepath.save()    
+
+            
+        else:
+            dst=bulge(im_cv)
+            cv2.imwrite(output_file_bulge, dst)
+            ks=np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
+            bulge_shape=cv2.filter2D(src=dst,ddepth=-1,kernel=ks)
+            cv2.imshow('image_bulge',bulge_shape)
+
+            shrink_bulge_output_path = os.path.join(folder_path6,ids+'.jpg') 
+            cv2.imwrite(shrink_bulge_output_path, bulge_shape)
+
+            # filepath = UploadedImage.objects.get(id=ids)
+            # filepath.shrink_bulge_image= shrink_bulge_output_path
+
+            # shrk_blg_ratios[0].append({
+            #     "output_image":shrink_bulge_output_path
+            # })
+
+            # shrink_bulge_json='SHRK_BLG_json'
+            # json_path = os.path.join(shrink_bulge_json,f'shrink_bulge{ids}.json')
+            # print("JSON->", json_path)
+            # filepath.shrink_bulge_json= json_path
+            # print(shrink_bulge_output_path)
+            # filepath.save()   
+
+        filepath = UploadedImage.objects.get(id=ids)
+        filepath.shrink_bulge_image= shrink_bulge_output_path
+
+        shrk_blg_ratios[0].append({
+            "output_image":shrink_bulge_output_path
+        })
+
+        shrink_bulge_json='SHRK_BLG_json'
+        json_path = os.path.join(shrink_bulge_json,f'shrink_bulge{ids}.json')
+        print("JSON->", json_path)
+        filepath.shrink_bulge_json= json_path
+        print(shrink_bulge_output_path)
+        filepath.save() 
+        with open (json_path,'w',encoding="utf-16") as f:
+        
+            # return f.write(res_json) 
+            print("fcre",shrk_blg_ratios) 
+            json.dump(shrk_blg_ratios,f)    
+
+        print("shrink/ bulge ")
+        cv2.imshow('image_original',inpt)
+        
+        
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        
+        return HttpResponse("shrin and bulge")
     
 
-
+        
+    
 
 
 
