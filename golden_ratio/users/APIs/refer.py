@@ -11,7 +11,7 @@ import pandas as pd
 
 
 # Define paths and filenames
-folder_path = '/home/ubuntu/goldenratio_backend/Simage'
+folder_path = 'D:/goldenratio_backend/reference_images/'
 # folder_path1='C:/Users/user/PycharmProjects/goldebn ratio/PycharmProjects/pythonProject/golden ratio'
 
 
@@ -106,8 +106,11 @@ def apply_filter(image, landmarks, landmark_indices):
     return image
 
 # Load the input image
-image_path = os.path.join(folder_path, 'aj2.jpg')
+image_path = os.path.join(folder_path, "aj2.jpg")
+print("123---->",image_path)
+
 image = cv2.imread(image_path)
+print(image)
 if image is None:
     raise FileNotFoundError(f"Failed to load image from: {image_path}")
 

@@ -12,6 +12,7 @@ import json
 import mediapipe as mp
 import numpy as np
 import math
+import subprocess
 
 
 from .landmarks import l1
@@ -37,7 +38,7 @@ import cv2
 from .image import inpt_image
 from .demo2 import filter_landmark_shrink as filter_landmark_s
 from .demo2 import filter_landmark_bulge as filter_landmark_b
-from .shape import predict_shape_face , classes
+# from .shape import predict_shape_face , classes
 
 folder_path = 'golden_ratio_output/'
 folder_path1= 'input_as_reference_output/'
@@ -2593,36 +2594,13 @@ class SYM_report(View):
     
         # return HttpResponse(response)
 #--------------------------------------------------------------
-folder_paths = 'C:/Users/user/PycharmProjects/goldebn ratio/PycharmProjects/pythonProject/app_folder'
-json_name = 'ref_coordinates_shrink.json'
-json_name1 = 'ref_coordinates_bulge.json'
-json_name2 = 'input_coordinates.json'
-
-ref_shrink_values = []
-ref_bulge_values = []
- 
-with open(os.path.join(folder_paths, json_name), 'r') as jsonfile:
-    json_data = json.load(jsonfile)
-
-with open(os.path.join(folder_paths, json_name1), 'r') as jsonfile1:
-    json_data1 = json.load(jsonfile1)
-
-with open(os.path.join(folder_paths, json_name2), 'r') as jsonfile2:
-    json_data2 = json.load(jsonfile2)
-
-input_shrink_values = []
-input_bulge_values = []
-
-input_ref_diffrence_shrink = []
-input_ref_diffrence_bulge = []
-
-shrink_amount = []
-bulge_amount = []
 
 class Shrin_Bulge(View):
     
     def get(self, request, ids, *args, **kwargs):
-            
+        # subprocess.run(['python',"C:/golden_ratio/golden_ratio/users/APIs/shrink_bulge.py",'input_image/im-1.JPG'])
+        # w=ids
+        # shrink_bulge(w)    
         input_path = r'/input_image/'
         try:
             filepath = UploadedImage.objects.get(id=ids)
@@ -2641,325 +2619,20 @@ class Shrin_Bulge(View):
         if image is None:
             return HttpResponse('Could not read image', status=400)
         _, img_encoded = cv2.imencode('.jpg', image)
-        # img_bytes = img_encoded.tobytes()
-        
-        shrk_blg_ratios = [[]]
-        def input_distance_coordinates_shrink():
-            for item in json_data2[0]:
-                for landmark in filter_landmark_s:
-                    id_value = item[landmark['start']]
-                    id_value1 = item[landmark['end']]
-                    landmark1 = (id_value['x'], id_value['y'], id_value['z'])
-                    landmark2 = (id_value1['x'], id_value1['y'], id_value1['z'])
-                    distance1 = np.linalg.norm(np.array(landmark2) - np.array(landmark1))
-                    values = distance1
-
-                    input_shrink_values.append(values)
-            return input_shrink_values
-
-
-        s = input_distance_coordinates_shrink()
-        print(len(s))
-        print(s)
-
-        
-
-        def input_distance_coordinates_bulge():
-            for item in json_data2[0]:
-                for landmark in filter_landmark_b:
-                    id_value = item[landmark['start']]
-                    id_value1 = item[landmark['end']]
-                    landmark1 = (id_value['x'], id_value['y'], id_value['z'])
-                    landmark2 = (id_value1['x'], id_value1['y'], id_value1['z'])
-                    distance1 = np.linalg.norm(np.array(landmark2) - np.array(landmark1))
-                    values = distance1
-                    input_bulge_values.append(values)
-
-            return input_bulge_values
-
-
-        b = input_distance_coordinates_bulge()
-        print(len(b))
-        print(b)
-
-
-        # input distance---------------------------------------------------------------
-
-        def reference_distance_coordinates_shrink():
-            for item in json_data[0]:
-                for landmark in filter_landmark_s:
-                    id_value = item[landmark['start']]
-                    id_value1 = item[landmark['end']]
-                    landmark1 = (id_value['x'], id_value['y'], id_value['z'])
-                    landmark2 = (id_value1['x'], id_value1['y'], id_value1['z'])
-                    distance = np.linalg.norm(np.array(landmark2) - np.array(landmark1))
-                    values = distance
-                    ref_shrink_values.append(values)
-            return ref_shrink_values
-
-
-        rs = reference_distance_coordinates_shrink()
-        print(len(rs))
-        print(rs)
-
-
-        def reference_distance_coordinates_bulge():
-            for item in json_data1[0]:
-                for landmark in filter_landmark_b:
-                    id_value = item[landmark['start']]
-                    id_value1 = item[landmark['end']]
-                    landmark1 = (id_value['x'], id_value['y'], id_value['z'])
-                    landmark2 = (id_value1['x'], id_value1['y'], id_value1['z'])
-                    distance = np.linalg.norm(np.array(landmark2) - np.array(landmark1))
-                    values = distance
-                    ref_bulge_values.append(values)
-            return ref_bulge_values
-
-
-        rb = reference_distance_coordinates_bulge()
-        print(len(rb))
-        print(rb)
-
-        #---------------------------------------------------------------------------
-
-
-
-        def input_reference_difference_shrink():
-            print(ref_shrink_values)
-            print(input_shrink_values)
-
-            for landmark, i, j in zip(filter_landmark_s, input_shrink_values, ref_shrink_values):
-                s = j - i
-                d = i + s
-                print(d)
-                if not str(d).startswith('0.0'):
-                    d = (d) * 10 ** -1
-
-                    values = {'l': landmark['end'], 'amount': d}
-                    input_ref_diffrence_shrink.append(d)
-                    shrink_amount.append(values)
-                else:
-                    d = (d) * 10 ** -1
-                    values = {'l': landmark['end'], 'amount': d}
-                    input_ref_diffrence_shrink.append(d)
-                    shrink_amount.append(values)
-
-            return shrink_amount
-            # return input_ref_diffrence_shrink
-
-
-        irs = input_reference_difference_shrink()
-        print(irs)
-
-
-        def input_reference_difference_bulge():
-            print(ref_bulge_values)
-            print(input_bulge_values)
-            for landmark, i, j in zip(filter_landmark_b, input_bulge_values, ref_bulge_values):
-                s = j - i
-                d = i - s
-                print(d)
-                if not str(d).startswith('0.0'):
-                    d = (d) * 10 ** -1
-
-                    values = {'l': landmark['end'], 'amount': -d}
-                    input_ref_diffrence_bulge.append(d)
-                    bulge_amount.append(values)
-                else:
-                    d = (d) * 10 ** -1
-                    values = {'l': landmark['end'], 'amount': -d}
-                    input_ref_diffrence_bulge.append(d)
-                    bulge_amount.append(values)
-
-            return bulge_amount
-            # return input_ref_diffrence_bulge
-
-        irb = input_reference_difference_bulge()
-        print(irb)
-
-        mp_face_mesh = mp.solutions.face_mesh
-        face_mesh = mp_face_mesh.FaceMesh(refine_landmarks=True)
-
-        f_img =image_path
-
-        im_cv = cv2.imread(f_img)
-
-        (h, w, _) = im_cv.shape
-        scale_x = 1.0
-        scale_y = 1.0
-        radius = min(w, h) / 2
-
-
-        flex_x = np.zeros((h, w), np.float32)
-        flex_y = np.zeros((h, w), np.float32)
-
-        results = face_mesh.process(im_cv)
-        landmarks_data = {}
-        def shrink(im_cv):
-            if results.multi_face_landmarks:
-                my_list = shrink_amount
-
-
-            for element in my_list:
-                landmark_index = element['l']
-        
-                amount = element['amount']
-                landmark_point = results.multi_face_landmarks[0].landmark[landmark_index]
-                #print(amount)
-                center_x = int(landmark_point.x * im_cv.shape[1])
-                center_y = int(landmark_point.y * im_cv.shape[0])
-
-
-                for y in range(h):
-                    delta_y = scale_y * (y - center_y)
-                    for x in range(w):
-                        delta_x = scale_x * (x - center_x)
-                        distance = delta_x * delta_x + delta_y * delta_y
-                        if distance >= (radius * radius):
-                            flex_x[y, x] = x
-                            flex_y[y, x] = y
-                        else:
-                            factor = 1.0
-                            if distance > 0.0:
-                                factor = math.pow(math.sin(math.pi * math.sqrt(distance) / radius / 2), -amount)
-                            flex_x[y, x] = factor * delta_x / scale_x + center_x
-                            flex_y[y, x] = factor * delta_y / scale_y + center_y
-
-                dst = cv2.remap(im_cv, flex_x, flex_y, cv2.INTER_LINEAR)
-                im_cv=dst
-            return im_cv
-
-        def bulge(im_cv):
-            if results.multi_face_landmarks:
-                my_list = bulge_amount
-
-
-            for element in my_list:
-                landmark_index = element['l']
-        
-                amount = element['amount']
-                landmark_point = results.multi_face_landmarks[0].landmark[landmark_index]
-                #print(amount)
-                center_x = int(landmark_point.x * im_cv.shape[1])
-                center_y = int(landmark_point.y * im_cv.shape[0])
-
-
-                for y in range(h):
-                    delta_y = scale_y * (y - center_y)
-                    for x in range(w):
-                        delta_x = scale_x * (x - center_x)
-                        distance = delta_x * delta_x + delta_y * delta_y
-                        if distance >= (radius * radius):
-                            flex_x[y, x] = x
-                            flex_y[y, x] = y
-                        else:
-                            factor = 1.0
-                            if distance > 0.0:
-                                factor = math.pow(math.sin(math.pi * math.sqrt(distance) / radius / 2), -amount)
-                            flex_x[y, x] = factor * delta_x / scale_x + center_x
-                            flex_y[y, x] = factor * delta_y / scale_y + center_y
-
-
-                dst = cv2.remap(im_cv, flex_x, flex_y, cv2.INTER_LINEAR)
-                im_cv=dst
-            return im_cv
-        output_file_shrink =os.path.join(folder_paths,'modified_image_shrink.jpg')
-        output_file_bulge = os.path.join(folder_paths,'modified_image_bulge.jpg')
-        in_img = f_img
-        inpt = cv2.imread(in_img)
-
-        #
-        # option=input("1.shrink or 2.bulge")
-
-        
-        # a=Image.open(output_file_shrink)
-        # a.save(os.path.join(folder_paths,"output_image_shrink.jpg"),quality=90000)
-
-
-
-        
-        # b=Image.open(output_file_bulge)
-        # b.save(os.path.join(folder_paths,"output_image_bulge.jpg"),quality=90000)
-
-
-        shape = predict_shape_face(image_path)
-        print("Shape:",shape)
-
-        if shape == classes[1] or shape == classes[2] or shape == classes[3] :
-            dst=shrink(im_cv)
-            cv2.imwrite(output_file_shrink, dst)
-            ks=np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
-            shrink_shape=cv2.filter2D(src=dst,ddepth=-1,kernel=ks)
-            cv2.imshow('image_shrink',shrink_shape)
-
-            shrink_bulge_output_path = os.path.join(folder_path6,ids+'.jpg') 
-            cv2.imwrite(shrink_bulge_output_path, shrink_shape)
-
-            # filepath = UploadedImage.objects.get(id=ids)
-            # filepath.shrink_bulge_image= shrink_bulge_output_path
-
-            # shrk_blg_ratios[0].append({
-            #     "output_image":shrink_bulge_output_path
-            # })
-
-            # shrink_bulge_json='SHRK_BLG_json'
-            # json_path = os.path.join(shrink_bulge_json,f'shrink_bulge{ids}.json')
-            # print("JSON->", json_path)
-            # filepath.shrink_bulge_json= json_path
-            # print(shrink_bulge_output_path)
-            # filepath.save()    
-
-            
-        else:
-            dst=bulge(im_cv)
-            cv2.imwrite(output_file_bulge, dst)
-            ks=np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
-            bulge_shape=cv2.filter2D(src=dst,ddepth=-1,kernel=ks)
-            cv2.imshow('image_bulge',bulge_shape)
-
-            shrink_bulge_output_path = os.path.join(folder_path6,ids+'.jpg') 
-            cv2.imwrite(shrink_bulge_output_path, bulge_shape)
-
-            # filepath = UploadedImage.objects.get(id=ids)
-            # filepath.shrink_bulge_image= shrink_bulge_output_path
-
-            # shrk_blg_ratios[0].append({
-            #     "output_image":shrink_bulge_output_path
-            # })
-
-            # shrink_bulge_json='SHRK_BLG_json'
-            # json_path = os.path.join(shrink_bulge_json,f'shrink_bulge{ids}.json')
-            # print("JSON->", json_path)
-            # filepath.shrink_bulge_json= json_path
-            # print(shrink_bulge_output_path)
-            # filepath.save()   
-
-        filepath = UploadedImage.objects.get(id=ids)
-        filepath.shrink_bulge_image= shrink_bulge_output_path
-
-        shrk_blg_ratios[0].append({
-            "output_image":shrink_bulge_output_path
-        })
-
-        shrink_bulge_json='SHRK_BLG_json'
-        json_path = os.path.join(shrink_bulge_json,f'shrink_bulge{ids}.json')
-        print("JSON->", json_path)
-        filepath.shrink_bulge_json= json_path
-        print(shrink_bulge_output_path)
-        filepath.save() 
-        with open (json_path,'w',encoding="utf-16") as f:
-        
-            # return f.write(res_json) 
-            print("fcre",shrk_blg_ratios) 
-            json.dump(shrk_blg_ratios,f)    
-
-        print("shrink/ bulge ")
-        cv2.imshow('image_original',inpt)
-        
-        
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
+        img_bytes = img_encoded.tobytes()
+        print("2222222222222222--------------2222222222222222222222222222222")
+        subprocess.run(['python',"D:/goldenratio_backend/golden_ratio/users/APIs/shrink_bulge.py",image_path,ids])
+        print("4444444444444444------------------4444444444444")
+
+        output_file_shrink = os.path.join(folder_path6,'shrink'+ids+'.jpg')
+        output_file_bulge = os.path.join(folder_path6, 'bulge'+ids+'.jpg')
+        print("SHRINK",output_file_shrink)
+        print("BULGE",output_file_bulge)
+        filepath.shrink_image=output_file_shrink
+        filepath.bulge_image=output_file_bulge
+        filepath.save()
+        print("11111111111------>1111111111")
+    
         
         return HttpResponse("shrin and bulge")
     

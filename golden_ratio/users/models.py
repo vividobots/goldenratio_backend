@@ -42,5 +42,7 @@ class UploadedImage(models.Model):
     phi_pdf=models.CharField(blank=True, max_length=100)
     symmetric_json=models.CharField(blank=True, max_length=100)
     symmetric_pdf=models.CharField(blank=True, max_length=100)
+    shrink_image=models.CharField(blank=True, max_length=100)
+    bulge_image=models.CharField(blank=True, max_length=100)
     status=models.BooleanField(default=False)
     lastUpdate = models.DateTimeField(auto_now=True, blank=True)
