@@ -66,6 +66,22 @@ class UpdateProfileDetails(graphene.Mutation):
         data.save()
         return UpdateProfileDetails(users=data)    
         
-            
+
+class DeleteImagebyId(graphene.Mutation):
+    class Arguments:
+        id = graphene.String(required=True) 
+    success = graphene.Boolean()
+    def mutate(self, info, id):
+        try:
+            image = UploadedImage.objects.get(id=id)
+            image.delete()
+            return DeleteImagebyId(success=True)
+        except UploadedImage.DoesNotExist:
+            return DeleteImagebyId(success=False)
+                    
 class UsersMutation(graphene.ObjectType):
     update_user_detail = UpdateProfileDetails.Field()
+    delete_uploaded_image = DeleteImagebyId.Field()
+    
+    
+
